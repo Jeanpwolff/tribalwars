@@ -1057,44 +1057,22 @@ function recalculate() {
         if (player.playerVillages) {
             player.playerVillages.forEach(village => {
 
-		if (!village.unitsInVillage) village.unitsInVillage = {};
+                // ← Aqui é o local correto para o código abaixo
+                if (!village.unitsInVillage) village.unitsInVillage = {};
                 if (!village.unitsEnroute) village.unitsEnroute = {};
-                currentPop = 0;
-                totalPop = 0;
-                game_data.units.forEach((element, j) => {
-    let unitCount = parseInt(village.unitsInVillage[element] || 0);
-    let enrouteCount = parseInt(village.unitsEnroute[element] || 0);
-    let popValue = parseInt(unitPopValues[element] || 0);
 
-    currentPop += unitCount * popValue;
-    totalPop += (unitCount + enrouteCount) * popValue;
-});
-                let wt;
-                if (village.watchtower) wt = village.watchtower;
-                else wt = 0;
-                if (village.wall) wall = village.wall;
-                else wall = "---";
-                targetData.push({
-                    "playerName": player.playerName,
-                    "tribeName": player.tribeName,
-                    "coord": village.coordinate,
-                    "incomingAttacks": village.attacksToVillage,
-                    "incomingSupports": 0,
-                    "currentStack": currentPop,
-                    "totalStack": totalPop,
-                    "watchtower": wt,
-                    "wall": wall,
-                    "checkedWT": player.checkedWT,
-                    "checkedWTMini": player.checkedWTMini,
-                    "color": player.color,
-                    "opacity": player.opacity,
-                    "unitsInVillage": village.unitsInVillage,
-                    "unitsEnRoute": village.unitsEnroute,
-                })
-            });
-        }
-    });
-}
+                let currentPop = 0;
+                let totalPop = 0;
+
+                game_data.units.forEach((element, j) => {
+                    let unitCount = parseInt(village.unitsInVillage[element] || 0);
+                    let enrouteCount = parseInt(village.unitsEnroute[element] || 0);
+                    let popValue = parseInt(unitPopValues[element] || 0);
+
+                    currentPop += unitCount * popValue;
+                    totalPop += (unitCount + enrouteCount) * popValue;
+                });
+
 
 function makeMap() {
     if (mapOverlay.mapHandler._spawnSector) {
