@@ -1,5 +1,4 @@
 javascript:
-//ATUALIZAÇÃO AO SCRIPT SHINKO-TO-KUMA PARA FUNCIONAR NO BR 135
 var development = false;
 //declaring globals
 var options;
@@ -16,14 +15,6 @@ var playerData = [];
  var currentColor, totalColor;
  var currentCoords = "";
  this.watchtowerRadius = [1.1, 1.3, 1.5, 1.7, 2, 2.3, 2.6, 3, 3.4, 3.9, 4.4, 5.1, 5.8, 6.7, 7.6, 8.7, 10, 11.5, 13.1, 15];
-
-
-let unitCount = parseInt(village.unitsInVillage[element] || 0);
-let enrouteCount = parseInt(village.unitsEnroute[element] || 0);
-let popValue = parseInt(unitPopValues[element] || 0);
-
-currentPop += unitCount * popValue;
-totalPop += (unitCount + enrouteCount) * popValue;
 
 
 
@@ -317,7 +308,8 @@ function getAllData() {
                                 let replaceVillages = [];
                                 for (let p = 0; p < rows.length; p++) {
                                     coordinate = rows[p].children[0].innerText.match(/\d+\|\d+/)[0];
-                                    replaceVillages.push({ "coordinate": coordinate, "currentPop": 0, "totalPop": 0, "attacksToVillage": "---" });
+                                    // CORREÇÃO: Adicionado unitsInVillage e unitsEnroute para evitar o erro.
+                                    replaceVillages.push({ "coordinate": coordinate, "currentPop": 0, "totalPop": 0, "attacksToVillage": "---", "unitsInVillage": {}, "unitsEnroute": {} });
                                 }
                                 playerData[j].playerVillages = replaceVillages;
                             }
@@ -335,7 +327,8 @@ function getAllData() {
                                 let replaceVillages = [];
                                 for (let p = 0; p < rows.length; p++) {
                                     coordinate = rows[p].children[0].innerText.match(/\d+\|\d+/)[0];
-                                    replaceVillages.push({ "coordinate": coordinate, "currentPop": 0, "totalPop": 0, "attacksToVillage": "---" });
+                                    // CORREÇÃO: Adicionado unitsInVillage e unitsEnroute para evitar o erro.
+                                    replaceVillages.push({ "coordinate": coordinate, "currentPop": 0, "totalPop": 0, "attacksToVillage": "---", "unitsInVillage": {}, "unitsEnroute": {} });
                                 }
                                 playerData[j].playerVillages = replaceVillages;
                             }
@@ -1056,23 +1049,38 @@ function recalculate() {
     playerData.forEach(player => {
         if (player.playerVillages) {
             player.playerVillages.forEach(village => {
-
-                // ← Aqui é o local correto para o código abaixo
-                if (!village.unitsInVillage) village.unitsInVillage = {};
-                if (!village.unitsEnroute) village.unitsEnroute = {};
-
-                let currentPop = 0;
-                let totalPop = 0;
-
+                currentPop = 0;
+                totalPop = 0;
                 game_data.units.forEach((element, j) => {
-                    let unitCount = parseInt(village.unitsInVillage[element] || 0);
-                    let enrouteCount = parseInt(village.unitsEnroute[element] || 0);
-                    let popValue = parseInt(unitPopValues[element] || 0);
-
-                    currentPop += unitCount * popValue;
-                    totalPop += (unitCount + enrouteCount) * popValue;
+                    currentPop = currentPop + (village.unitsInVillage[element] * unitPopValues[game_data.units[j]]);
+                    totalPop = totalPop + (village.unitsInVillage[element] * unitPopValues[game_data.units[j]]) + (parseInt(village.unitsEnroute[element]) * unitPopValues[game_data.units[j]]);
                 });
-
+                let wt;
+                if (village.watchtower) wt = village.watchtower;
+                else wt = 0;
+                if (village.wall) wall = village.wall;
+                else wall = "---";
+                targetData.push({
+                    "playerName": player.playerName,
+                    "tribeName": player.tribeName,
+                    "coord": village.coordinate,
+                    "incomingAttacks": village.attacksToVillage,
+                    "incomingSupports": 0,
+                    "currentStack": currentPop,
+                    "totalStack": totalPop,
+                    "watchtower": wt,
+                    "wall": wall,
+                    "checkedWT": player.checkedWT,
+                    "checkedWTMini": player.checkedWTMini,
+                    "color": player.color,
+                    "opacity": player.opacity,
+                    "unitsInVillage": village.unitsInVillage,
+                    "unitsEnRoute": village.unitsEnroute,
+                })
+            });
+        }
+    });
+}
 
 function makeMap() {
     if (mapOverlay.mapHandler._spawnSector) {
